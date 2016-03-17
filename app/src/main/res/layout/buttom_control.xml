@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/music_image"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentStart="true"
+        android:src="@drawable/icon"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toEndOf="@id/music_image"
+        android:layout_toStartOf="@+id/last_one"
+        android:gravity="center"
+        android:text="歌名，歌曲"/>
+
+    <ImageView
+        android:id="@+id/next_one"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_alignParentEnd="true"
+        android:src="@mipmap/button_next"/>
+
+    <ImageView
+        android:id="@+id/StartOrStop"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toStartOf="@id/next_one"
+        android:src="@mipmap/button_play"/>
+
+    <ImageView
+        android:id="@+id/last_one"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_toStartOf="@+id/StartOrStop"
+        android:src="@mipmap/button_prev"/>
+
+
+</RelativeLayout>
