@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private Messenger mMessenger;
     private int mId;
+    private Intent mIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +69,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 mImage_start.setImageResource(R.mipmap.button_play);
             }
         }
-        bindService(new Intent(this, MusicServer.class), mServiceConnection, Context.BIND_AUTO_CREATE);
+        mIntent = new Intent(this, MusicServer.class);
+        startService(mIntent);
+        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -95,6 +99,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onDestroy() {
         super.onDestroy();
         unbindService(mServiceConnection);
+        stopService(mIntent);
     }
 
 
@@ -135,6 +140,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+
         switch (v.getId()) {
             //上一曲
             case R.id.last_one:
@@ -169,6 +175,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+
         if (mMessenger != null) {
             sendStartMessage(position);
         }
@@ -178,12 +186,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //发送播放的信息
     private void sendStartMessage(int position) {
         mMusicInfo.setText(mSongList.get(position).getTitle() + "\n" + mSongList.get(position).getSinger());
-        String url = mSongList.get(position).getFileUrl();
         Message message = Message.obtain();
         message.what = MusicServer.START;
-        Bundle bundle = new Bundle();
-        bundle.putString(MusicServer.MUSIC_URL, url);
-        message.setData(bundle);
+        message.obj = mSongList.get(position);
+
         try {
             mMessenger.send(message);
         } catch (RemoteException e) {

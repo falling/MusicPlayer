@@ -1,10 +1,13 @@
 package com.example.falling.musicplayer;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 /**
  * 音乐实体类
  */
-public class SongBean {
+public class SongBean implements Parcelable {
 
   private String fileName;
   private String title;
@@ -111,4 +114,45 @@ public class SongBean {
     return "歌曲："  + title  + "\n 歌手：" + singer + "\n 专辑：" + album ;
   }
 
+  @Override
+  public int describeContents() {
+    return 0;
+  }
+
+  @Override
+  public void writeToParcel(Parcel dest, int flags) {
+    dest.writeString(this.fileName);
+    dest.writeString(this.title);
+    dest.writeInt(this.duration);
+    dest.writeString(this.singer);
+    dest.writeString(this.album);
+    dest.writeString(this.year);
+    dest.writeString(this.type);
+    dest.writeString(this.size);
+    dest.writeString(this.fileUrl);
+  }
+
+  protected SongBean(Parcel in) {
+    this.fileName = in.readString();
+    this.title = in.readString();
+    this.duration = in.readInt();
+    this.singer = in.readString();
+    this.album = in.readString();
+    this.year = in.readString();
+    this.type = in.readString();
+    this.size = in.readString();
+    this.fileUrl = in.readString();
+  }
+
+  public static final Parcelable.Creator<SongBean> CREATOR = new Parcelable.Creator<SongBean>() {
+    @Override
+    public SongBean createFromParcel(Parcel source) {
+      return new SongBean(source);
+    }
+
+    @Override
+    public SongBean[] newArray(int size) {
+      return new SongBean[size];
+    }
+  };
 }
