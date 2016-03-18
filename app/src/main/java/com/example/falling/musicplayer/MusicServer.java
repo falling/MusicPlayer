@@ -8,7 +8,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
-import android.util.Log;
 
 import java.io.IOException;
 
@@ -37,8 +36,8 @@ public class MusicServer extends Service {
                     try {
                         if (mMediaPlayer.isPlaying()) {
                             mMediaPlayer.stop();
-                            mMediaPlayer = new MediaPlayer();
                         }
+                        mMediaPlayer = new MediaPlayer();
                         mMediaPlayer.setDataSource(musicUrl);
                         mMediaPlayer.prepare();
                         mMediaPlayer.start();
@@ -57,10 +56,8 @@ public class MusicServer extends Service {
         }
     }
 
-    @Override
-    public void onDestroy() {
-        Log.i("tag", "destroy");
-    }
+
+
 
     @Nullable
     @Override

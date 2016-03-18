@@ -21,7 +21,6 @@
         <service
             android:name=".MusicServer"
             android:exported="true"
-            android:process=":musicServer"
             android:enabled="true">
         </service>
     </application>

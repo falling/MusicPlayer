@@ -14,10 +14,12 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -30,6 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mImage_start;
     private ImageView mImage_next_one;
     private ArrayList<SongBean> mSongList;
+    private TextView mMusicInfo;
 
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -44,6 +47,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     };
     private Messenger mMessenger;
+    private int mId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,8 +68,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mSongList = AudioUtils.getAllSongs(this);
             ListViewAdapter listViewAdapter = new ListViewAdapter(this, mSongList);
             mListView.setAdapter(listViewAdapter);
-        }
 
+            mId = SharedPreferencesUtil.getId(this);
+            if (mId >= 0 && mId < mSongList.size())
+                mMusicInfo.setText(mSongList.get(mId).getTitle() + " ; " + mSongList.get(mId).getSinger());
+
+
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unbindService(mServiceConnection);
     }
 
     @Override
@@ -99,38 +114,61 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mImage_last_one = (ImageView) findViewById(R.id.last_one);
         mImage_start = (ImageView) findViewById(R.id.StartOrStop);
         mImage_next_one = (ImageView) findViewById(R.id.next_one);
+        mMusicInfo = (TextView) findViewById(R.id.music_info);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.last_one:
+                if(mId>0)
+                    mId--;
+                else
+                    mId = mSongList.size()-1;
 
+                SharedPreferencesUtil.save(this,mId);
+                mMusicInfo.setText(mSongList.get(mId).getTitle() + " ; " + mSongList.get(mId).getSinger());
+                sendStartMessage(mId);
                 break;
             case R.id.StartOrStop:
 
                 break;
             case R.id.next_one:
+                if(mId<mSongList.size()-1)
+                    mId++;
+                else
+                    mId=0;
 
+                SharedPreferencesUtil.save(this,mId);
+                mMusicInfo.setText(mSongList.get(mId).getTitle() + " ; " + mSongList.get(mId).getSinger());
+                sendStartMessage(mId);
                 break;
         }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if(mMessenger!=null) {
-            String url = mSongList.get(position).getFileUrl();
-            Message message = Message.obtain();
-            message.what = MusicServer.START;
-            Bundle bundle = new Bundle();
-            bundle.putString(MusicServer.MUSIC_URL, url);
-            message.setData(bundle);
-            try {
-                mMessenger.send(message);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+        if (mMessenger != null) {
+            sendStartMessage(position);
+            SharedPreferencesUtil.save(this, position);
+            mMusicInfo.setText(mSongList.get(position).getTitle() + " ; " + mSongList.get(position).getSinger());
+
         }
 
+    }
+
+    //发送播放的信息
+    private void sendStartMessage(int position) {
+        String url = mSongList.get(position).getFileUrl();
+        Message message = Message.obtain();
+        message.what = MusicServer.START;
+        Bundle bundle = new Bundle();
+        bundle.putString(MusicServer.MUSIC_URL, url);
+        message.setData(bundle);
+        try {
+            mMessenger.send(message);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 }

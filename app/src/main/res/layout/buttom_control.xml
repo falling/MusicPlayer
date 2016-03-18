@@ -12,12 +12,13 @@
         android:src="@drawable/icon"/>
 
     <TextView
+        android:id="@+id/music_info"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_toEndOf="@id/music_image"
         android:layout_toStartOf="@+id/last_one"
         android:gravity="center"
-        android:text="歌名，歌曲"/>
+        android:text="@string/default_string"/>
 
     <ImageView
         android:id="@+id/next_one"
