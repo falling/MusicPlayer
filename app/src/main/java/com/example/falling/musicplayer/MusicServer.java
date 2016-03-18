@@ -15,13 +15,12 @@ import java.io.IOException;
 public class MusicServer extends Service {
     public static final int START = 0;
     public static final int PAUSE = 1;
-    public static final int CONTINUE = 3;
+    public static final int CONTINUE= 2;
     public static final String MUSIC_URL = "musicUrl";
     private static String musicUrl;
     private static MediaPlayer mMediaPlayer = new MediaPlayer();
 
     Messenger mMessenger = new Messenger(new MusicPlayerHandler());
-
 
 
 
@@ -48,16 +47,13 @@ public class MusicServer extends Service {
                 case PAUSE:
                     if (mMediaPlayer.isPlaying()) {
                         mMediaPlayer.pause();
+                    }else{
+                        mMediaPlayer.start();
                     }
                     break;
-                case CONTINUE:
-                    mMediaPlayer.start();
             }
         }
     }
-
-
-
 
     @Nullable
     @Override
