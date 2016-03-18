@@ -20,9 +20,9 @@
 
         <service
             android:name=".MusicServer"
-            android:process=":MusicPlayerServer"
-            android:enabled="true"
-            android:exported="true">
+            android:exported="true"
+            android:process=":musicServer"
+            android:enabled="true">
         </service>
     </application>
 

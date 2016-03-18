@@ -3,12 +3,12 @@ package com.example.falling.musicplayer;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.io.IOException;
 
@@ -17,10 +17,14 @@ public class MusicServer extends Service {
     public static final int START = 0;
     public static final int PAUSE = 1;
     public static final int CONTINUE = 3;
+    public static final String MUSIC_URL = "musicUrl";
     private static String musicUrl;
     private static MediaPlayer mMediaPlayer = new MediaPlayer();
 
     Messenger mMessenger = new Messenger(new MusicPlayerHandler());
+
+
+
 
     static class MusicPlayerHandler extends Handler {
         @Override
@@ -29,9 +33,12 @@ public class MusicServer extends Service {
             // 处理消息
             switch (msg.what) {
                 case START:
-                    musicUrl = msg.getData().getString("musicUrl");
+                    musicUrl = msg.getData().getString(MUSIC_URL);
                     try {
-                        mMediaPlayer.stop();
+                        if (mMediaPlayer.isPlaying()) {
+                            mMediaPlayer.stop();
+                            mMediaPlayer = new MediaPlayer();
+                        }
                         mMediaPlayer.setDataSource(musicUrl);
                         mMediaPlayer.prepare();
                         mMediaPlayer.start();
@@ -45,9 +52,14 @@ public class MusicServer extends Service {
                     }
                     break;
                 case CONTINUE:
-                    mMediaPlayer.pause();
+                    mMediaPlayer.start();
             }
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.i("tag", "destroy");
     }
 
     @Nullable

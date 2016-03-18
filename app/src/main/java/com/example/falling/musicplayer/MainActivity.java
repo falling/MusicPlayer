@@ -1,7 +1,15 @@
 package com.example.falling.musicplayer;
 
 import android.Manifest;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.IBinder;
+import android.os.Message;
+import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -23,6 +31,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mImage_next_one;
     private ArrayList<SongBean> mSongList;
 
+
+    private ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            mMessenger = new Messenger(service);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+
+        }
+    };
+    private Messenger mMessenger;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -31,6 +53,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         findView();
         setListener();
+        bindService(new Intent(this, MusicServer.class), mServiceConnection, Context.BIND_AUTO_CREATE);
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -95,6 +118,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        String url = mSongList.get(position).getFileUrl();
+        if(mMessenger!=null) {
+            String url = mSongList.get(position).getFileUrl();
+            Message message = Message.obtain();
+            message.what = MusicServer.START;
+            Bundle bundle = new Bundle();
+            bundle.putString(MusicServer.MUSIC_URL, url);
+            message.setData(bundle);
+            try {
+                mMessenger.send(message);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
