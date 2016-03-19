@@ -41,7 +41,10 @@ public class MusicServer extends Service {
     private NotificationCompat.Builder mBuilder;
     private RemoteViews mRemoteView;
     private Intent mIntent;
-    private MyApplication mApplication;
+
+    private boolean isPlaying;
+    private boolean isPause;
+    private int songItemPos;
 
 
     /**
@@ -51,7 +54,7 @@ public class MusicServer extends Service {
         if (mSongBean != null) {
             mRemoteView.setTextViewText(R.id.music_info, mSongBean.getTitle());
 
-            if (mApplication.isPlaying && mApplication.isPause) {
+            if (isPlaying && isPause) {
                 mRemoteView.setImageViewResource(R.id.StartOrStop, R.mipmap.button_play);
             } else {
                 mRemoteView.setImageViewResource(R.id.StartOrStop, R.mipmap.button_stop);
@@ -68,7 +71,8 @@ public class MusicServer extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        mApplication = (MyApplication) getApplication();
+        isPlaying = false;
+        isPause = false;
         mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mRemoteView = new RemoteViews(getPackageName(), R.layout.buttom_control);
         mIntent = new Intent(this, MainActivity.class);
@@ -83,26 +87,26 @@ public class MusicServer extends Service {
         if (TextUtils.equals(ctrl_code, MusicServer.ACTION_BUTTON)) {
             if (TextUtils.equals(clicked_button, BUTTON_LAST_ID)) {
                 //上一曲
-                mApplication.lastSong();
+                lastSong();
                 playMusic();
             } else if (TextUtils.equals(clicked_button, BUTTON_PlAY_ID)) {
-                if (mApplication.isPlaying) {
+                if (isPlaying) {
                     pauseMusic();
-                    mApplication.isPause = !mApplication.isPause;
+                    isPause = !isPause;
 
                 } else {
                     playMusic();
                 }
             } else if (TextUtils.equals(clicked_button, BUTTON_NEXT_ID)) {
                 //下一曲
-                mApplication.nextSong();
+                nextSong();
                 playMusic();
             }
             changeNotification();
             //改变activity的界面
-            Message msg = mApplication.mHandler.obtainMessage();
-            msg.what = MainActivity.MESSAGE_CODE;
-            mApplication.mHandler.sendMessage(msg);
+//            Message msg = mApplication.mHandler.obtainMessage();
+//            msg.what = MainActivity.MESSAGE_CODE;
+//            mApplication.mHandler.sendMessage(msg);
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -112,6 +116,7 @@ public class MusicServer extends Service {
      */
     private void setListen() {
         //点击的事件处理
+        mSongList = AudioUtils.getAllSongs(this);
 
         Intent buttonIntent = new Intent(this, MusicServer.class);
         buttonIntent.setAction(ACTION_BUTTON);
@@ -134,6 +139,9 @@ public class MusicServer extends Service {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
+
+            mSongList = AudioUtils.getAllSongs(MusicServer.this);
+            songItemPos = msg.arg1;
             // 处理消息
             switch (msg.what) {
                 case START:
@@ -157,7 +165,8 @@ public class MusicServer extends Service {
     }
 
     private void playMusic() {
-        mSongBean = mApplication.mSongList.get(mApplication.songItemPos);
+
+        mSongBean = mSongList.get(songItemPos);
         musicUrl = mSongBean.getFileUrl();
         try {
             if (mMediaPlayer.isPlaying()) {
@@ -170,9 +179,28 @@ public class MusicServer extends Service {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mApplication.isPlaying = true;
-        mApplication.isPause = false;
+        isPlaying = true;
+        isPause = false;
     }
+
+    //上一曲
+    public void lastSong() {
+        if (songItemPos > 0) {
+            songItemPos--;
+        } else {
+            songItemPos = mSongList.size() - 1;
+        }
+    }
+
+    //下一曲
+    public void  nextSong(){
+        if (songItemPos < mSongList.size() - 1) {
+            songItemPos++;
+        } else {
+            songItemPos = 0;
+        }
+    }
+
 
     @Nullable
     @Override

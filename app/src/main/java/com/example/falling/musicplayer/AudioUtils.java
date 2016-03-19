@@ -50,9 +50,11 @@ public class AudioUtils {
         if (cursor!=null && cursor.moveToFirst()) {
 
             SongBean song = null;
-
+            int i = 0;
             do {
                 song = new SongBean();
+                //第几首歌
+                song.setId(i++);
                 // 文件名
                 song.setFileName(cursor.getString(1));
                 // 歌曲名

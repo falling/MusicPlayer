@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private MainHandler mMainHandler;
 
-    public class MainHandler extends Handler{
+    public class MainHandler extends Handler {
 
         public final WeakReference<MainActivity> mClock_viewWeakReference;
 
@@ -64,14 +64,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         @Override
         public void handleMessage(Message msg) {
-            Log.i("main","Handler change");
+            Log.i("main", "Handler change");
             super.handleMessage(msg);
-            switch (msg.what){
+            switch (msg.what) {
                 case MESSAGE_CODE:
                     mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
                     changeIcon();
                     break;
-
             }
 
         }
@@ -91,16 +90,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mMainHandler = new MainHandler(this);
         mApplication.mHandler = this.mMainHandler;
-        mIntent = new Intent(this, MusicServer.class);
-        startService(mIntent);
-        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             //申请WRITE_EXTERNAL_STORAGE权限
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
         } else {
-            initSongList();
+            doAfterPermissinGet();
         }
     }
 
@@ -138,12 +134,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case REQUEST_CODE: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    initSongList();
+                    doAfterPermissinGet();
+
                 } else {
                     Toast.makeText(this, "没有内存卡权限，无法读取SD卡媒体信息", Toast.LENGTH_SHORT).show();
                 }
             }
         }
+    }
+
+    private void doAfterPermissinGet() {
+        initSongList();
+        mIntent = new Intent(this, MusicServer.class);
+        startService(mIntent);
+        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     private void initSongList() {
@@ -217,12 +221,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     //发送播放的信息
     private void sendStartMessage(int position) {
         mMusicInfo.setText(getMusicInfo(position));
-        sendMessage(MusicServer.START);
-
         mImage_start.setImageResource(R.mipmap.button_stop);
         SharedPreferencesUtil.save(this, position);
-
         mApplication.songItemPos = position;
+        mApplication.isPlaying = true;
+        mApplication.isPause = false;
+        sendMessage(MusicServer.START);
     }
 
     //发送暂停的信息
@@ -237,6 +241,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void sendMessage(int what) {
         Message message = Message.obtain();
         message.what = what;
+        message.arg1 = mApplication.songItemPos;
         try {
             mMessenger.send(message);
         } catch (RemoteException e) {

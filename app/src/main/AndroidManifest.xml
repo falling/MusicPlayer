@@ -23,6 +23,7 @@
         <service
             android:name=".MusicServer"
             android:enabled="true"
+            android:process=":music"
             android:exported="true">
         </service>
 

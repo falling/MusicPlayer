@@ -1,6 +1,5 @@
 package com.example.falling.musicplayer;
 
-import android.app.Activity;
 import android.app.Application;
 
 import java.util.List;
