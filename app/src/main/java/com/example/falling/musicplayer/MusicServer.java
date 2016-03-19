@@ -11,6 +11,7 @@ import android.os.Message;
 import android.os.Messenger;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
+import android.widget.RemoteViews;
 
 import java.io.IOException;
 
@@ -21,27 +22,37 @@ public class MusicServer extends Service {
     public static final String MUSIC_URL = "musicUrl";
     private static String musicUrl;
     private static MediaPlayer mMediaPlayer = new MediaPlayer();
+    private static int id = 1;
 
     Messenger mMessenger = new Messenger(new MusicPlayerHandler());
     private SongBean mSongBean;
+    private NotificationManager mNotifyMgr;
+    private NotificationCompat.Builder mBuilder;
+    private RemoteViews mRemoteView;
 
+
+    private void changeNotification() {
+        if (mSongBean != null) {
+            mRemoteView.setTextViewText(R.id.music_info, mSongBean.getTitle());
+
+            PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
+            mBuilder = new NotificationCompat.Builder(this)
+                    .setSmallIcon(R.drawable.icon)
+                    .setContent(mRemoteView);
+
+            mBuilder.setContentIntent(pendingIntent);
+            mNotifyMgr.notify(id, mBuilder.build());
+        }
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+        mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        mRemoteView = new RemoteViews(getPackageName(), R.layout.buttom_control);
 
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, new Intent(this, MainActivity.class), 0);
-        NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.icon)
-                        .setContentTitle("My notification")
-                        .setContentText("Hello World!");
-
-        mBuilder.setContentIntent(pendingIntent);
-        NotificationManager mNotifyMgr =
-                (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-        mNotifyMgr.notify(1, mBuilder.build());
     }
+
 
     class MusicPlayerHandler extends Handler {
         @Override
@@ -67,11 +78,12 @@ public class MusicServer extends Service {
                 case PAUSE:
                     if (mMediaPlayer.isPlaying()) {
                         mMediaPlayer.pause();
-                    }else{
+                    } else {
                         mMediaPlayer.start();
                     }
                     break;
             }
+            changeNotification();
         }
     }
 

@@ -110,8 +110,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case REQUEST_CODE: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    ArrayList<SongBean> songList = AudioUtils.getAllSongs(this);
-                    ListViewAdapter listViewAdapter = new ListViewAdapter(this, songList);
+                    mSongList = AudioUtils.getAllSongs(this);
+                    ListViewAdapter listViewAdapter = new ListViewAdapter(this, mSongList);
                     mListView.setAdapter(listViewAdapter);
 
                 } else {
@@ -140,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
+
+        startService(mIntent);
+        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         switch (v.getId()) {
             //上一曲
@@ -175,6 +178,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        startService(mIntent);
+        bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
 
         if (mMessenger != null) {
@@ -202,6 +207,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         isPause = false;
     }
 
+    //发送暂停的信息
     private void sendPauseMessage() {
         Message message = Message.obtain();
         message.what = MusicServer.PAUSE;
