@@ -162,6 +162,7 @@ public class MusicServer extends Service {
         } else {
             mMediaPlayer.start();
         }
+        isPause = !isPause;
     }
 
     private void playMusic() {
