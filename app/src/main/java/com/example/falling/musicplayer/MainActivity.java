@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
@@ -15,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -22,15 +24,18 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.lang.ref.WeakReference;
+
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
     public static final int REQUEST_CODE = 1;
+    public static final int MESSAGE_CODE = 1;
     private ListView mListView;
     private ImageView mImage_last_one;
     private ImageView mImage_start;
     private ImageView mImage_next_one;
-    private TextView mMusicInfo;
+    public TextView mMusicInfo;
 
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -46,6 +51,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
     private Messenger mMessenger;
 
+
+    private MainHandler mMainHandler;
+
+    public class MainHandler extends Handler{
+
+        public final WeakReference<MainActivity> mClock_viewWeakReference;
+
+        public MainHandler(MainActivity activity) {
+            mClock_viewWeakReference = new WeakReference<MainActivity>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Log.i("main","Handler change");
+            super.handleMessage(msg);
+            switch (msg.what){
+                case MESSAGE_CODE:
+                    mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+                    changeIcon();
+                    break;
+
+            }
+
+        }
+    }
+
     private Intent mIntent;
     private MyApplication mApplication;
 
@@ -56,9 +87,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findView();
         setListener();
         mApplication = (MyApplication) getApplication();
-        mApplication.mActivity = this;
         changeIcon();
 
+        mMainHandler = new MainHandler(this);
+        mApplication.mHandler = this.mMainHandler;
         mIntent = new Intent(this, MusicServer.class);
         startService(mIntent);
         bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
@@ -68,10 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
                     REQUEST_CODE);
         } else {
-            ListViewAdapter listViewAdapter = new ListViewAdapter(this, mApplication.mSongList);
-            mListView.setAdapter(listViewAdapter);
-            if (mApplication.songItemPos >= 0 && mApplication.songItemPos < mApplication.mSongList.size())
-                mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+            initSongList();
         }
     }
 
@@ -93,8 +122,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
-
     @Override
     public void onDestroy() {
         super.onDestroy();
@@ -111,10 +138,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case REQUEST_CODE: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    mApplication.mSongList = AudioUtils.getAllSongs(this);
-                    ListViewAdapter listViewAdapter = new ListViewAdapter(this, mApplication.mSongList);
-                    mListView.setAdapter(listViewAdapter);
-
+                    initSongList();
                 } else {
                     Toast.makeText(this, "没有内存卡权限，无法读取SD卡媒体信息", Toast.LENGTH_SHORT).show();
                 }
@@ -122,12 +146,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    private void initSongList() {
+        mApplication.mSongList = AudioUtils.getAllSongs(this);
+        ListViewAdapter listViewAdapter = new ListViewAdapter(this, mApplication.mSongList);
+        mListView.setAdapter(listViewAdapter);
+        if (mApplication.songItemPos >= 0 && mApplication.songItemPos < mApplication.mSongList.size())
+            mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+    }
+
 
     /**
      * 改变 播放 或者 暂停 的图标
      */
     private void changeIcon() {
-        if (mApplication.isPlaying && mApplication.isPause) {
+        if (!mApplication.isPlaying || (mApplication.isPlaying && mApplication.isPause)) {
             mImage_start.setImageResource(R.mipmap.button_play);
         } else {
             mImage_start.setImageResource(R.mipmap.button_stop);
@@ -143,14 +175,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             //上一曲
             case R.id.last_one:
-                if (mApplication.songItemPos > 0) {
-                    mApplication.songItemPos--;
-                } else {
-                    mApplication.songItemPos = mApplication.mSongList.size() - 1;
-                }
+                mApplication.lastSong();
                 sendStartMessage(mApplication.songItemPos);
                 break;
-
 
             //暂停播放
             case R.id.StartOrStop:
@@ -162,11 +189,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             //下一曲
             case R.id.next_one:
-                if (mApplication.songItemPos < mApplication.mSongList.size() - 1) {
-                    mApplication.songItemPos++;
-                } else {
-                    mApplication.songItemPos = 0;
-                }
+                mApplication.nextSong();
                 sendStartMessage(mApplication.songItemPos);
                 break;
         }
@@ -200,8 +223,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         SharedPreferencesUtil.save(this, position);
 
         mApplication.songItemPos = position;
-        mApplication.isPlaying = true;
-        mApplication.isPause = false;
     }
 
     //发送暂停的信息
