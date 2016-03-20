@@ -31,7 +31,6 @@ public class MusicServer extends Service {
     public static final String BUTTON_NEXT_ID = "3";
     public static final String IS_PLAYING = "isPlaying";
     public static final String IS_PAUSE = "isPause";
-    public static final String MUSIC_INFO = "musicInfo";
     public static final String MUSIC_POS = "musicPos";
     private static String musicUrl;
     private static MediaPlayer mMediaPlayer = new MediaPlayer();
@@ -106,20 +105,19 @@ public class MusicServer extends Service {
             }
             changeNotification();
 
-            mMessage = Message.obtain();
-            mMessage.what = MainActivity.MESSAGE_CODE;
-            mMessage.arg1 = isPlaying ? 1 : 0;
-            mMessage.arg2 = isPause ? 1 : 0;
-            Bundle bundle = new Bundle();
-            bundle.putBoolean(IS_PLAYING, isPlaying);
-            bundle.putBoolean(IS_PAUSE, isPause);
-            bundle.putInt(MUSIC_POS, songItemPos);
-            SharedPreferencesUtil.save(this,songItemPos);
-            mMessage.setData(bundle);
-            try {
-                mServerMessenger.send(mMessage);
-            } catch (RemoteException e) {
-                e.printStackTrace();
+            if(mServerMessenger!=null) {
+                mMessage = Message.obtain();
+                mMessage.what = MainActivity.MESSAGE_CODE;
+                Bundle bundle = new Bundle();
+                bundle.putBoolean(IS_PLAYING, isPlaying);
+                bundle.putBoolean(IS_PAUSE, isPause);
+                bundle.putInt(MUSIC_POS,songItemPos);
+                mMessage.setData(bundle);
+                try {
+                    mServerMessenger.send(mMessage);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
             }
         }
         return super.onStartCommand(intent, flags, startId);
@@ -155,8 +153,8 @@ public class MusicServer extends Service {
             super.handleMessage(msg);
             mSongList = AudioUtils.getAllSongs(MusicServer.this);
             songItemPos = msg.arg1;
+            Log.i("pos",songItemPos+"");
             mServerMessenger = msg.replyTo;
-            Log.i("songItem", songItemPos + "");
             // 处理消息
             switch (msg.what) {
                 case START:

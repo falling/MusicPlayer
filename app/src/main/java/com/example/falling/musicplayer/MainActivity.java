@@ -106,6 +106,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onDestroy() {
         super.onDestroy();
+        SharedPreferencesUtil.save(this, mApplication.songItemPos);
         unbindService(mServiceConnection);
         stopService(mIntent);
     }
@@ -204,7 +205,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void sendStartMessage(int position) {
         mMusicInfo.setText(getMusicInfo(position));
         mImage_start.setImageResource(R.mipmap.button_stop);
-        SharedPreferencesUtil.save(this, position);
         mApplication.songItemPos = position;
         mApplication.isPlaying = true;
         mApplication.isPause = false;
