@@ -5,10 +5,12 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
@@ -22,16 +24,18 @@ import java.util.ArrayList;
 public class MusicServer extends Service {
     public static final int START = 0;
     public static final int PAUSE = 1;
-    public static final String MUSIC_URL = "musicUrl";
-    public static final String IS_PLAYING = "isPlaying";
     public static final String ACTION_BUTTON = "action_button";
     public static final String INTENT_BUTTON_ID = "intent_button_id";
     public static final String BUTTON_LAST_ID = "1";
     public static final String BUTTON_PlAY_ID = "2";
     public static final String BUTTON_NEXT_ID = "3";
+    public static final String IS_PLAYING = "isPlaying";
+    public static final String IS_PAUSE = "isPause";
+    public static final String MUSIC_INFO = "musicInfo";
+    public static final String MUSIC_POS = "musicPos";
     private static String musicUrl;
     private static MediaPlayer mMediaPlayer = new MediaPlayer();
-    private static int id = 1;
+    private static int Notification_Id = 1;
 
     private ArrayList<SongBean> mSongList;
 
@@ -45,6 +49,8 @@ public class MusicServer extends Service {
     private boolean isPlaying;
     private boolean isPause;
     private int songItemPos;
+    private Message mMessage;
+    private Messenger mServerMessenger;
 
 
     /**
@@ -52,19 +58,15 @@ public class MusicServer extends Service {
      */
     private void changeNotification() {
         if (mSongBean != null) {
-            mRemoteView.setTextViewText(R.id.music_info, mSongBean.getTitle());
-
+            mRemoteView.setTextViewText(R.id.music_info, mSongBean.getTitle()+"\n"+mSongBean.getSinger());
             if (isPlaying && isPause) {
                 mRemoteView.setImageViewResource(R.id.StartOrStop, R.mipmap.button_play);
             } else {
                 mRemoteView.setImageViewResource(R.id.StartOrStop, R.mipmap.button_stop);
             }
-            mBuilder = new NotificationCompat.Builder(this)
-                    .setSmallIcon(R.drawable.icon)
+            mBuilder.setSmallIcon(R.drawable.icon)
                     .setContent(mRemoteView);
-            mBuilder.setContentIntent(PendingIntent.getActivity(this, 0, mIntent, 0));
-
-            mNotifyMgr.notify(id, mBuilder.build());
+            mNotifyMgr.notify(Notification_Id, mBuilder.build());
         }
     }
 
@@ -76,6 +78,8 @@ public class MusicServer extends Service {
         mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mRemoteView = new RemoteViews(getPackageName(), R.layout.buttom_control);
         mIntent = new Intent(this, MainActivity.class);
+        mBuilder = new NotificationCompat.Builder(this);
+        mBuilder.setContentIntent(PendingIntent.getActivity(this, 0, mIntent, 0));
         setListen();
     }
 
@@ -92,8 +96,6 @@ public class MusicServer extends Service {
             } else if (TextUtils.equals(clicked_button, BUTTON_PlAY_ID)) {
                 if (isPlaying) {
                     pauseMusic();
-                    isPause = !isPause;
-
                 } else {
                     playMusic();
                 }
@@ -103,10 +105,22 @@ public class MusicServer extends Service {
                 playMusic();
             }
             changeNotification();
-            //改变activity的界面
-//            Message msg = mApplication.mHandler.obtainMessage();
-//            msg.what = MainActivity.MESSAGE_CODE;
-//            mApplication.mHandler.sendMessage(msg);
+
+            mMessage = Message.obtain();
+            mMessage.what = MainActivity.MESSAGE_CODE;
+            mMessage.arg1 = isPlaying ? 1 : 0;
+            mMessage.arg2 = isPause ? 1 : 0;
+            Bundle bundle = new Bundle();
+            bundle.putBoolean(IS_PLAYING, isPlaying);
+            bundle.putBoolean(IS_PAUSE, isPause);
+            bundle.putInt(MUSIC_POS, songItemPos);
+            SharedPreferencesUtil.save(this,songItemPos);
+            mMessage.setData(bundle);
+            try {
+                mServerMessenger.send(mMessage);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
         }
         return super.onStartCommand(intent, flags, startId);
     }
@@ -139,9 +153,10 @@ public class MusicServer extends Service {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-
             mSongList = AudioUtils.getAllSongs(MusicServer.this);
             songItemPos = msg.arg1;
+            mServerMessenger = msg.replyTo;
+            Log.i("songItem", songItemPos + "");
             // 处理消息
             switch (msg.what) {
                 case START:
@@ -166,7 +181,6 @@ public class MusicServer extends Service {
     }
 
     private void playMusic() {
-
         mSongBean = mSongList.get(songItemPos);
         musicUrl = mSongBean.getFileUrl();
         try {
@@ -194,14 +208,13 @@ public class MusicServer extends Service {
     }
 
     //下一曲
-    public void  nextSong(){
+    public void nextSong() {
         if (songItemPos < mSongList.size() - 1) {
             songItemPos++;
         } else {
             songItemPos = 0;
         }
     }
-
 
     @Nullable
     @Override

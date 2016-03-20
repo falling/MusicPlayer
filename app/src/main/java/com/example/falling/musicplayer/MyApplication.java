@@ -12,7 +12,6 @@ public class MyApplication extends Application {
     public int songItemPos;//当前播放音乐在列表中的位置
     public boolean isPlaying;//是否播放的状态
     public boolean isPause;//是否暂停
-    public MainActivity.MainHandler mHandler;
 
 
     @Override
