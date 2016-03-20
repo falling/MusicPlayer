@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mApplication.isPause = bundle.getBoolean(MusicServer.IS_PAUSE);
                     mApplication.songItemPos = bundle.getInt(MusicServer.MUSIC_POS);
                     mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+                    changeIcon();
                     break;
             }
             super.handleMessage(msgFromServer);

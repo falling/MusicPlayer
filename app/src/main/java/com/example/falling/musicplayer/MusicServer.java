@@ -93,6 +93,7 @@ public class MusicServer extends Service {
                 lastSong();
                 playMusic();
             } else if (TextUtils.equals(clicked_button, BUTTON_PlAY_ID)) {
+                //播放暂停
                 if (isPlaying) {
                     pauseMusic();
                 } else {
