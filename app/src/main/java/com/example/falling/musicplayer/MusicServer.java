@@ -74,6 +74,7 @@ public class MusicServer extends Service {
         super.onCreate();
         isPlaying = false;
         isPause = false;
+        songItemPos = SharedPreferencesUtil.getId(this);
         mNotifyMgr = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
         mRemoteView = new RemoteViews(getPackageName(), R.layout.buttom_control);
         mIntent = new Intent(this, MainActivity.class);
@@ -107,6 +108,7 @@ public class MusicServer extends Service {
             changeNotification();
 
             if(mServerMessenger!=null) {
+                SharedPreferencesUtil.save(this,songItemPos);
                 mMessage = Message.obtain();
                 mMessage.what = MainActivity.MESSAGE_CODE;
                 Bundle bundle = new Bundle();
