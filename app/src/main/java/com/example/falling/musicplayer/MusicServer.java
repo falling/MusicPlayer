@@ -107,23 +107,27 @@ public class MusicServer extends Service {
             }
             changeNotification();
 
-            if(mServerMessenger!=null) {
-                SharedPreferencesUtil.save(this,songItemPos);
-                mMessage = Message.obtain();
-                mMessage.what = MainActivity.MESSAGE_CODE;
-                Bundle bundle = new Bundle();
-                bundle.putBoolean(IS_PLAYING, isPlaying);
-                bundle.putBoolean(IS_PAUSE, isPause);
-                bundle.putInt(MUSIC_POS,songItemPos);
-                mMessage.setData(bundle);
-                try {
-                    mServerMessenger.send(mMessage);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
+            sendMessageToActivity();
         }
         return super.onStartCommand(intent, flags, startId);
+    }
+
+    private void sendMessageToActivity() {
+        if(mServerMessenger!=null) {
+            SharedPreferencesUtil.save(this, songItemPos);
+            mMessage = Message.obtain();
+            mMessage.what = MainActivity.MESSAGE_CODE;
+            Bundle bundle = new Bundle();
+            bundle.putBoolean(IS_PLAYING, isPlaying);
+            bundle.putBoolean(IS_PAUSE, isPause);
+            bundle.putInt(MUSIC_POS,songItemPos);
+            mMessage.setData(bundle);
+            try {
+                mServerMessenger.send(mMessage);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -154,18 +158,21 @@ public class MusicServer extends Service {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            mSongList = AudioUtils.getAllSongs(MusicServer.this);
-            songItemPos = msg.arg1;
-            Log.i("pos",songItemPos+"");
             mServerMessenger = msg.replyTo;
             // 处理消息
             switch (msg.what) {
                 case START:
+                    mSongList = AudioUtils.getAllSongs(MusicServer.this);
+                    songItemPos = msg.arg1;
                     playMusic();
 
                     break;
                 case PAUSE:
                     pauseMusic();
+                    break;
+
+                case MainActivity.CONNECT:
+                    sendMessageToActivity();
                     break;
             }
             changeNotification();

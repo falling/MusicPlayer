@@ -29,6 +29,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     public static final int REQUEST_CODE = 1;
     public static final int MESSAGE_CODE = 4;
+    public static final int CONNECT = 3;
     private ListView mListView;
     private ImageView mImage_last_one;
     private ImageView mImage_start;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mMessenger = new Messenger(service);
+            sendMessage(CONNECT);
         }
 
         @Override
@@ -109,7 +111,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         SharedPreferencesUtil.save(this, mApplication.songItemPos);
         unbindService(mServiceConnection);
-        stopService(mIntent);
     }
 
 
