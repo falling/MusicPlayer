@@ -1,6 +1,9 @@
-package com.example.falling.musicplayer;
+package com.example.falling.musicplayer.application;
 
 import android.app.Application;
+
+import com.example.falling.musicplayer.bean.SongBean;
+import com.example.falling.musicplayer.util.SharedPreferencesUtil;
 
 import java.util.List;
 

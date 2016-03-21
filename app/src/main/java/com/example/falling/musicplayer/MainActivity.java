@@ -16,13 +16,18 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.falling.musicplayer.adapter.ListViewAdapter;
+import com.example.falling.musicplayer.application.MyApplication;
+import com.example.falling.musicplayer.server.MusicServer;
+import com.example.falling.musicplayer.util.AudioUtils;
+import com.example.falling.musicplayer.util.SharedPreferencesUtil;
 
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {

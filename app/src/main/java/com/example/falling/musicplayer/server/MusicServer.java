@@ -1,4 +1,4 @@
-package com.example.falling.musicplayer;
+package com.example.falling.musicplayer.server;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,8 +14,13 @@ import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
 import android.text.TextUtils;
-import android.util.Log;
 import android.widget.RemoteViews;
+
+import com.example.falling.musicplayer.util.AudioUtils;
+import com.example.falling.musicplayer.MainActivity;
+import com.example.falling.musicplayer.R;
+import com.example.falling.musicplayer.util.SharedPreferencesUtil;
+import com.example.falling.musicplayer.bean.SongBean;
 
 import java.io.IOException;
 import java.util.ArrayList;

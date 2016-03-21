@@ -1,4 +1,4 @@
-package com.example.falling.musicplayer;
+package com.example.falling.musicplayer.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;

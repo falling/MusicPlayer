@@ -1,10 +1,12 @@
-package com.example.falling.musicplayer;
+package com.example.falling.musicplayer.util;
 
 import android.content.Context;
 import android.database.Cursor;
 import android.media.MediaScannerConnection;
 import android.os.Environment;
 import android.provider.MediaStore;
+
+import com.example.falling.musicplayer.bean.SongBean;
 
 import java.util.ArrayList;
 
