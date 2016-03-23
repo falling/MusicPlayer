@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mImage_start;
     private ImageView mImage_next_one;
     public TextView mMusicInfo;
+    private long mSensorTime;
 
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -280,8 +281,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         float[] values = event.values;
         if (values != null && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
             Log.i("sensor", values[0] + "");
-            if (values[0] == 0.0)
-                nextOne();
+            if (values[0] == 0.0) {
+                if (System.currentTimeMillis() - mSensorTime < 1000) {
+                    nextOne();
+                    Toast.makeText(this, "下一曲", Toast.LENGTH_SHORT).show();
+                    mSensorTime = System.currentTimeMillis();
+                }else {
+                    pause();
+                    Toast.makeText(this, "暂停", Toast.LENGTH_SHORT).show();
+                    mSensorTime = System.currentTimeMillis();
+                }
+            }
         }
     }
 
