@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -16,6 +20,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -30,7 +35,7 @@ import com.example.falling.musicplayer.util.AudioUtils;
 import com.example.falling.musicplayer.util.SharedPreferencesUtil;
 
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener, SensorEventListener {
 
     public static final int REQUEST_CODE = 1;
     public static final int MESSAGE_CODE = 4;
@@ -75,6 +80,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private Intent mIntent;
     private MyApplication mApplication;
+    private SensorManager mManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -83,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findView();
         setListener();
         mApplication = (MyApplication) getApplication();
+        mManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         changeIcon();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -95,6 +102,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mManager.registerListener(this, mManager.getDefaultSensor(Sensor.TYPE_PROXIMITY), SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    @Override
+    protected void onPause() {
+        mManager.unregisterListener(this);
+        super.onPause();
+    }
 
     private void setListener() {
         mListView.setOnItemClickListener(this);
@@ -171,24 +189,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         switch (v.getId()) {
             //上一曲
             case R.id.last_one:
-                mApplication.lastSong();
-                sendStartMessage(mApplication.songItemPos);
+                lastOne();
                 break;
 
             //暂停播放
             case R.id.StartOrStop:
-                if (mApplication.isPlaying) {
-                    sendPauseMessage();
-                } else {
-                    sendStartMessage(mApplication.songItemPos);
-                }
+                pause();
                 break;
             //下一曲
             case R.id.next_one:
-                mApplication.nextSong();
-                sendStartMessage(mApplication.songItemPos);
+                nextOne();
                 break;
         }
+    }
+
+    private void pause() {
+        if (mApplication.isPlaying) {
+            sendPauseMessage();
+        } else {
+            sendStartMessage(mApplication.songItemPos);
+        }
+    }
+
+    private void nextOne() {
+        mApplication.nextSong();
+        sendStartMessage(mApplication.songItemPos);
+    }
+
+    private void lastOne() {
+        mApplication.lastSong();
+        sendStartMessage(mApplication.songItemPos);
     }
 
     @Override
@@ -237,5 +267,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+    }
+
+
+    /**
+     * 传感器
+     *
+     * @param event
+     */
+    @Override
+    public void onSensorChanged(SensorEvent event) {
+        float[] values = event.values;
+        if (values != null && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+            Log.i("sensor", values[0] + "");
+            if (values[0] == 0.0)
+                nextOne();
+        }
+    }
+
+    @Override
+    public void onAccuracyChanged(Sensor sensor, int accuracy) {
+
     }
 }
