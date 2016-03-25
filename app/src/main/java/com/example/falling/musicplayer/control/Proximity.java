@@ -1,6 +1,5 @@
 package com.example.falling.musicplayer.control;
 
-import android.util.Log;
 
 import com.example.falling.musicplayer.MainActivity;
 
@@ -38,6 +37,14 @@ public class Proximity implements Runnable {
 
 
     /**
+     * 在activity里调用，表示界面歌曲控制完成。
+     */
+    public void controlOver(){
+        count = 0;     //重置传感器触发的次数
+        mIsRunning = false;//表示运行完毕，取消标志
+    }
+
+    /**
      * 判断0.5S内传感器触发的次数执行对应的动作
      */
     @Override
@@ -61,9 +68,7 @@ public class Proximity implements Runnable {
                     }
                 }
             });
-            Thread.sleep(500);//因为 runOnUiThread 需要时间，在运行完前，count数据不能变
-            count = 0;     //重置传感器触发的次数
-            mIsRunning = false;//表示运行完毕，取消标志
+
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

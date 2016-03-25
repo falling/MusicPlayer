@@ -20,7 +20,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -212,16 +211,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         } else {
             sendStartMessage(mApplication.songItemPos);
         }
+        mProximity.controlOver();
     }
 
     public void nextOne() {
         mApplication.nextSong();
         sendStartMessage(mApplication.songItemPos);
+        mProximity.controlOver();
+
     }
 
     public void lastOne() {
         mApplication.lastSong();
         sendStartMessage(mApplication.songItemPos);
+        mProximity.controlOver();
     }
 
     @Override
