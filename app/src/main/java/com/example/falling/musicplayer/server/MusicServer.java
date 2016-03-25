@@ -52,13 +52,13 @@ public class MusicServer extends Service {
 
     private boolean isPlaying;
     private boolean isPause;
-    private int songItemPos;
+    private int songItemPos;//播放歌曲的ID
     private Message mMessage;
     private Messenger mServerMessenger;
 
 
     /**
-     * 改变notification的显示
+     * 改变notification的歌曲信息显示
      */
     private void changeNotification() {
         if (mSongBean != null) {
@@ -88,6 +88,7 @@ public class MusicServer extends Service {
         setListen();
     }
 
+    //处理notification的点击事件
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         String ctrl_code = intent.getAction();
@@ -117,15 +118,19 @@ public class MusicServer extends Service {
         return super.onStartCommand(intent, flags, startId);
     }
 
+
+    /**
+     * 发送歌曲信息，播放暂停信息给activity，通知改变activity上的信息
+     */
     private void sendMessageToActivity() {
         if(mServerMessenger!=null) {
             SharedPreferencesUtil.save(this, songItemPos);
             mMessage = Message.obtain();
             mMessage.what = MainActivity.MESSAGE_CODE;
             Bundle bundle = new Bundle();
-            bundle.putBoolean(IS_PLAYING, isPlaying);
-            bundle.putBoolean(IS_PAUSE, isPause);
-            bundle.putInt(MUSIC_POS,songItemPos);
+            bundle.putBoolean(IS_PLAYING, isPlaying);//是否有歌曲播放
+            bundle.putBoolean(IS_PAUSE, isPause);//是否的暂停信息
+            bundle.putInt(MUSIC_POS,songItemPos);//目前播放的歌曲ID
             mMessage.setData(bundle);
             try {
                 mServerMessenger.send(mMessage);
@@ -136,7 +141,7 @@ public class MusicServer extends Service {
     }
 
     /**
-     * 给notification的按钮添加监听
+     * 给notification的按钮添加监听，PaddingIntent发送给自己，在onStartCommand 那处理
      */
     private void setListen() {
         //点击的事件处理
@@ -163,15 +168,15 @@ public class MusicServer extends Service {
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
-            mServerMessenger = msg.replyTo;
+            mServerMessenger = msg.replyTo;//接收
             // 处理消息
             switch (msg.what) {
                 case START:
                     mSongList = AudioUtils.getAllSongs(MusicServer.this);
                     songItemPos = msg.arg1;
                     playMusic();
-
                     break;
+
                 case PAUSE:
                     pauseMusic();
                     break;
