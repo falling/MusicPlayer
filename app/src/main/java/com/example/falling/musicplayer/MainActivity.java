@@ -30,6 +30,7 @@ import android.widget.Toast;
 
 import com.example.falling.musicplayer.adapter.ListViewAdapter;
 import com.example.falling.musicplayer.application.MyApplication;
+import com.example.falling.musicplayer.control.Proximity;
 import com.example.falling.musicplayer.server.MusicServer;
 import com.example.falling.musicplayer.util.AudioUtils;
 import com.example.falling.musicplayer.util.SharedPreferencesUtil;
@@ -45,7 +46,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView mImage_start;
     private ImageView mImage_next_one;
     public TextView mMusicInfo;
-    private long mSensorTime;
 
 
     private ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Intent mIntent;
     private MyApplication mApplication;
     private SensorManager mManager;
+    private Proximity mProximity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +92,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setListener();
         mApplication = (MyApplication) getApplication();
         mManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+        mProximity = new Proximity(this);
         changeIcon();
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -204,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void pause() {
+    public void pause() {
         if (mApplication.isPlaying) {
             sendPauseMessage();
         } else {
@@ -212,12 +214,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void nextOne() {
+    public void nextOne() {
         mApplication.nextSong();
         sendStartMessage(mApplication.songItemPos);
     }
 
-    private void lastOne() {
+    public void lastOne() {
         mApplication.lastSong();
         sendStartMessage(mApplication.songItemPos);
     }
@@ -280,16 +282,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onSensorChanged(SensorEvent event) {
         float[] values = event.values;
         if (values != null && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
-            Log.i("sensor", values[0] + "");
             if (values[0] == 0.0) {
-                if (System.currentTimeMillis() - mSensorTime < 1000) {
-                    nextOne();
-                    Toast.makeText(this, "下一曲", Toast.LENGTH_SHORT).show();
-                    mSensorTime = System.currentTimeMillis();
+                if(mProximity.isRunning()){
+                    mProximity.addCount();
                 }else {
-                    pause();
-                    Toast.makeText(this, "暂停", Toast.LENGTH_SHORT).show();
-                    mSensorTime = System.currentTimeMillis();
+                    new Thread(mProximity).start();
                 }
             }
         }
