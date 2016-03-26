@@ -183,7 +183,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 改变播放或者暂停的图标
      */
     private void changeIcon() {
-        if (!mApplication.isPlaying || (mApplication.isPlaying && mApplication.isPause)) {
+        if (!mApplication.isPlaying || mApplication.isPause) {
             mImage_start.setImageResource(R.mipmap.button_play);
         } else {
             mImage_start.setImageResource(R.mipmap.button_stop);
