@@ -27,8 +27,6 @@ public class AudioUtils {
         MediaScannerConnection.scanFile(context, new String[]{Environment
                 .getExternalStorageDirectory().getAbsolutePath()}, null, null);
 
-
-
         ArrayList<SongBean> songs = null;
 
         Cursor cursor = context.getContentResolver().query(
@@ -47,7 +45,7 @@ public class AudioUtils {
                         + MediaStore.Audio.Media.MIME_TYPE + "=?",
                 new String[] { "audio/mpeg", "audio/x-ms-wma" }, null);
 
-        songs = new ArrayList<SongBean>();
+        songs = new ArrayList<>();
 
         if (cursor!=null && cursor.moveToFirst()) {
 

@@ -70,7 +70,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     mApplication.isPlaying = bundle.getBoolean(MusicServer.IS_PLAYING);
                     mApplication.isPause = bundle.getBoolean(MusicServer.IS_PAUSE);
                     mApplication.songItemPos = bundle.getInt(MusicServer.MUSIC_POS);
-                    mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+                    if(mApplication.mSongList.size()!=0) {
+                        mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+                    }
                     changeIcon();
                     break;
             }
@@ -165,10 +167,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initSongList() {
         mApplication.mSongList = AudioUtils.getAllSongs(this);
-        ListViewAdapter listViewAdapter = new ListViewAdapter(this, mApplication.mSongList);
-        mListView.setAdapter(listViewAdapter);
-        if (mApplication.songItemPos >= 0 && mApplication.songItemPos < mApplication.mSongList.size())
-            mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+        if(mApplication.mSongList.size() == 0 ){
+            Toast.makeText(this,"SD卡没有歌曲！",Toast.LENGTH_LONG).show();
+        }
+        else {
+            ListViewAdapter listViewAdapter = new ListViewAdapter(this, mApplication.mSongList);
+            mListView.setAdapter(listViewAdapter);
+            if (mApplication.songItemPos >= 0 && mApplication.songItemPos < mApplication.mSongList.size())
+                mMusicInfo.setText(getMusicInfo(mApplication.songItemPos));
+        }
     }
 
 
@@ -188,20 +195,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         startService(mIntent);
         bindService(mIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-        switch (v.getId()) {
-            //上一曲
-            case R.id.last_one:
-                lastOne();
-                break;
+        if(mApplication.mSongList.size()!=0) {
+            switch (v.getId()) {
+                //上一曲
+                case R.id.last_one:
+                    lastOne();
+                    break;
 
-            //暂停播放
-            case R.id.StartOrStop:
-                pause();
-                break;
-            //下一曲
-            case R.id.next_one:
-                nextOne();
-                break;
+                //暂停播放
+                case R.id.StartOrStop:
+                    pause();
+                    break;
+                //下一曲
+                case R.id.next_one:
+                    nextOne();
+                    break;
+            }
+        }else{
+            Toast.makeText(v.getContext(),"SD卡没有歌曲",Toast.LENGTH_LONG).show();
         }
     }
 
