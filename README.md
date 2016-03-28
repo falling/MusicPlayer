@@ -4,4 +4,7 @@
 service与activity用messenger通信
 activity的一些播放状态存储在 MyApplication
 
+距离传感器控制播放
+遮挡一次是暂停，两次下一曲，三次上一曲
+
 感觉还有好多小BUG。。。
