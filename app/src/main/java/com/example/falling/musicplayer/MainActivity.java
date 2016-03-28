@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         changeIcon();
     }
 
-    //发送消息
+    //发送歌曲消息
     private void sendMessage(int what) {
         Message message = Message.obtain();
         message.what = what;
@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     /**
-     * 传感器
+     * 距离传感器
      *
      * @param event
      */
@@ -297,9 +297,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         float[] values = event.values;
         if (values != null && event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
             if (values[0] == 0.0) {
-                if(mProximity.isRunning()){
+                if(mProximity.isRunning()){  //如果控制线程已经在运行，则增加距离传感器的触发次数
                     mProximity.addCount();
-                }else {
+                }else {     //没有运行则开启线程
                     new Thread(mProximity).start();
                 }
             }
