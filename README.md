@@ -8,3 +8,5 @@ activity的一些播放状态存储在 MyApplication
 遮挡一次是暂停，两次下一曲，三次上一曲
 
 感觉还有好多小BUG。。。
+
+![](https://github.com/falling/MusicPlayer/raw/master/screenshots/Screenshot_20160520-203323.png)  
